@@ -49,6 +49,14 @@ class ApiClientTest {
         } catch (error: ApiException) {
             assertEquals("Check the submitted fields (email: String should have at least 5 characters)", error.message)
         }
+        val crossField = Recorder(422, """{"code":"invalid_input","message":"Check the submitted fields",
+            "field_errors":[{"field":"body","message":"Value error, entrance must be inside the venue"}]}""")
+        try {
+            ApiClient("https://api.example.com", null, crossField).register("a@b.co", "password-long")
+            fail("Expected an error")
+        } catch (error: ApiException) {
+            assertEquals("Check the submitted fields (Value error, entrance must be inside the venue)", error.message)
+        }
         val expired = Recorder(401, """{"code":"unauthenticated","message":"Sign in to continue"}""")
         try {
             ApiClient("https://api.example.com", "old", expired) { signedOut = true }.me()

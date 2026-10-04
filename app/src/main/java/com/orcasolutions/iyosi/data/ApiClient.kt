@@ -93,8 +93,9 @@ class ApiClient(
             val error = runCatching { ApiJson.decodeFromString<ApiErrorBody>(text) }.getOrNull()
             if (status == 401 && token != null) onUnauthorized()
             val detail = error?.fieldErrors?.firstOrNull()?.let { field ->
+                // Paths look like body.location.lat; cross-field rules report just "body".
                 val name = field.field.substringAfterLast('.').replace('_', ' ')
-                if (name.isBlank()) " ${field.message}" else " ($name: ${field.message})"
+                if (name.isBlank() || name == "body") " (${field.message})" else " ($name: ${field.message})"
             } ?: ""
             throw ApiException(status, (error?.message ?: "Server returned $status.") + detail, error?.code ?: "http_error")
         }
@@ -141,6 +142,8 @@ class ApiClient(
 
     suspend fun confirm(id: String, payload: ConfirmationRequest, key: String): Acknowledgement =
         request("/v1/places/${segment(id)}/confirmations", "POST", body = encode(payload), idempotencyKey = key)
+
+    suspend fun myReview(id: String): PublicReview = request("/v1/places/${segment(id)}/reviews/me")
 
     suspend fun review(id: String, payload: ReviewRequest): PublicReview =
         request("/v1/places/${segment(id)}/reviews/me", "PUT", body = encode(payload))

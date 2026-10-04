@@ -30,7 +30,7 @@ Address search needs the API's `GEOCODER_URL`. Without it, the server returns `5
 - Place detail distinguishes verification review from community confirmation and ratings. Directions use the public access point when supplied and are disabled for prohibited, closed, or merged records.
 - Sign-in or registration is requested only for contributions. The bearer token is encrypted with Android Keystore at rest. Proposals remain pending, and the app never sends a verification or advisory status in contribution requests.
 - **Add place** opens a proposal form with its own map: tap to set the reported area pin, or switch to set a public entrance pin. Nearby published records within 200 m are listed, and a record within 50 m blocks a new proposal in favor of a correction.
-- Confirmations, reviews, reports, account summary, proposal history, and deletion requests use the API resources defined in the API repository's `docs/openapi.json`.
+- Confirmations, reviews, reports, account summary, proposal history, and deletion requests use the API resources defined in the API repository's `docs/openapi.json`. The review form prefills your existing rating when the server offers `GET /v1/places/{id}/reviews/me`.
 - `iyosi://places/PLACE_ID` opens a place directly, including the API's closed and merged states.
 
 ## Validation

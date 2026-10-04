@@ -22,6 +22,7 @@ import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -197,6 +198,21 @@ fun ReviewForm(placeId: String, state: AppState, onDone: () -> Unit) {
     var body by remember { mutableStateOf("") }
     var busy by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
+    var edited by remember { mutableStateOf(false) }
+
+    // Prefill an existing review. A 404 means there is none; older servers lack the endpoint.
+    LaunchedEffect(placeId, state.token) {
+        try {
+            val existing = state.api.myReview(placeId)
+            if (!edited) {
+                stars = existing.stars
+                body = existing.body.orEmpty()
+            }
+        } catch (failure: CancellationException) {
+            throw failure
+        } catch (_: Exception) {
+        }
+    }
 
     fun save() = scope.launch {
         busy = true; error = null
@@ -220,9 +236,9 @@ fun ReviewForm(placeId: String, state: AppState, onDone: () -> Unit) {
             GuideNotice("Your rating is separate from confirmations and evidence review. A rating does not establish permission.")
             GuideCard(spacing = 6.dp) {
                 Text("Stars", style = Guide.heading(13.sp), color = Guide.colors.muted)
-                ChoiceGroup((1..5).map { it to if (it == 1) "1 star" else "$it stars" }, stars) { stars = it }
+                ChoiceGroup((1..5).map { it to if (it == 1) "1 star" else "$it stars" }, stars) { edited = true; stars = it }
             }
-            GuideTextField(body, { body = it }, "Your experience (optional)", singleLine = false, minLines = 4, limit = 1000)
+            GuideTextField(body, { edited = true; body = it }, "Your experience (optional)", singleLine = false, minLines = 4, limit = 1000)
             FormError(error)
         }
     }
