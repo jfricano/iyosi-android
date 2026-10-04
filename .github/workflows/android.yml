@@ -23,15 +23,18 @@ jobs:
       - name: Publish design screenshots
         # Opt-in: a pushed commit whose message contains [update screenshots]
         # publishes the fixture renders to the design-screenshots branch for
-        # review, leaving the pushed branch itself untouched.
+        # review as a single commit holding only the images, leaving the pushed
+        # branch and its history untouched.
         if: github.event_name == 'push' && contains(github.event.head_commit.message, '[update screenshots]')
         run: |
           mkdir -p docs/design
           cp app/build/outputs/roborazzi/*.png docs/design/
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout --orphan design-screenshots
+          git rm -rq --cached .
           git add docs/design
-          git commit -m "Design screenshots for ${GITHUB_SHA::7}" --allow-empty
+          git commit -m "Design screenshots for ${GITHUB_SHA::7}"
           git push --force origin HEAD:refs/heads/design-screenshots
       - name: Build debug and release
         run: ./gradlew --no-daemon assembleDebug assembleRelease lintDebug
