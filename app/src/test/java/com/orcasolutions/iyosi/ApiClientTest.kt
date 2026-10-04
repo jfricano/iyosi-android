@@ -65,6 +65,16 @@ class ApiClientTest {
         assertTrue(signedOut)
     }
 
+    @Test fun readsAndDeletesOwnReview() = runBlocking {
+        val read = Recorder(body = """{"id":"rev1","stars":4,"body":"Quiet corner","created_at":"2026-09-01T00:00:00Z","updated_at":"2026-09-01T00:00:00Z"}""")
+        val review = ApiClient("https://api.example.com", "token", read).myReview("p1")
+        assertEquals(4, review.stars)
+        assertEquals("GET" to "https://api.example.com/v1/places/p1/reviews/me", read.calls.single().let { it.first to it.second })
+        val delete = Recorder(204, "")
+        ApiClient("https://api.example.com", "token", delete).deleteReview("p1")
+        assertEquals("DELETE", delete.calls.single().first)
+    }
+
     @Test fun encodesQueryAndPathSegments() {
         assertEquals("a%20b%2Fc%3F%26", ApiClient.percentEncode("a b/c?&"))
         assertEquals(

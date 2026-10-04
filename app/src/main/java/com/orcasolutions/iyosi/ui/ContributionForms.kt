@@ -199,11 +199,14 @@ fun ReviewForm(placeId: String, state: AppState, onDone: () -> Unit) {
     var busy by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     var edited by remember { mutableStateOf(false) }
+    var hasReview by remember { mutableStateOf(false) }
+    var confirmingDelete by remember { mutableStateOf(false) }
 
     // Prefill an existing review. A 404 means there is none; older servers lack the endpoint.
     LaunchedEffect(placeId, state.token) {
         try {
             val existing = state.api.myReview(placeId)
+            hasReview = true
             if (!edited) {
                 stars = existing.stars
                 body = existing.body.orEmpty()
@@ -240,7 +243,39 @@ fun ReviewForm(placeId: String, state: AppState, onDone: () -> Unit) {
             }
             GuideTextField(body, { edited = true; body = it }, "Your experience (optional)", singleLine = false, minLines = 4, limit = 1000)
             FormError(error)
+            if (hasReview) {
+                GuideButton(onClick = { confirmingDelete = true }, enabled = !busy, secondary = true) {
+                    Text("Delete my review", color = Guide.colors.warning)
+                }
+            }
         }
+    }
+
+    if (confirmingDelete) {
+        AlertDialog(
+            onDismissRequest = { confirmingDelete = false },
+            title = { Text("Delete your review?") },
+            text = { Text("Your rating and text are removed from this place.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    confirmingDelete = false
+                    scope.launch {
+                        busy = true; error = null
+                        try {
+                            state.api.deleteReview(placeId)
+                            onDone()
+                        } catch (failure: CancellationException) {
+                            throw failure
+                        } catch (failure: Exception) {
+                            error = failure.message
+                        }
+                        busy = false
+                    }
+                }) { Text("Delete", color = Guide.colors.warning) }
+            },
+            dismissButton = { TextButton(onClick = { confirmingDelete = false }) { Text("Cancel") } },
+            containerColor = Guide.colors.surface,
+        )
     }
 }
 

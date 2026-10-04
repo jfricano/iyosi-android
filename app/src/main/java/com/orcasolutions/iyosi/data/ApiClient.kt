@@ -148,6 +148,10 @@ class ApiClient(
     suspend fun review(id: String, payload: ReviewRequest): PublicReview =
         request("/v1/places/${segment(id)}/reviews/me", "PUT", body = encode(payload))
 
+    suspend fun deleteReview(id: String) {
+        request<Unit>("/v1/places/${segment(id)}/reviews/me", "DELETE")
+    }
+
     suspend fun report(payload: ReportRequest, key: String): Acknowledgement =
         request("/v1/reports", "POST", body = encode(payload), idempotencyKey = key)
 
