@@ -1,9 +1,21 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <application android:label="iYosi" android:theme="@android:style/Theme.Material.Light.NoActionBar" android:usesCleartextTraffic="${cleartextAllowed}" android:allowBackup="false">
-        <activity android:name=".MainActivity" android:exported="true" android:windowSoftInputMode="adjustResize">
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
+    <application
+        android:allowBackup="false"
+        android:icon="@mipmap/ic_launcher"
+        android:label="iYosi"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.IYosi"
+        android:usesCleartextTraffic="${cleartextAllowed}">
+        <activity
+            android:name=".MainActivity"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboard|keyboardHidden|navigation|density|fontScale|uiMode"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -12,7 +24,7 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="iyosi" android:host="places" />
+                <data android:host="places" android:scheme="iyosi" />
             </intent-filter>
         </activity>
     </application>

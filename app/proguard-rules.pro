@@ -1,0 +1,3 @@
+-keepattributes *Annotation*, InnerClasses
+-keepclassmembers class com.orcasolutions.iyosi.data.** { *** Companion; }
+-keepclasseswithmembers class com.orcasolutions.iyosi.data.** { kotlinx.serialization.KSerializer serializer(...); }
