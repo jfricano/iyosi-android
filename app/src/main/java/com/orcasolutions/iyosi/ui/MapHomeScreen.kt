@@ -121,7 +121,10 @@ fun MapHomeScreen(state: AppState, navigator: Navigator, initiallyShowingList: B
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val camera = remember { MapCamera(MapCamera.MetroManila, 12.0) }
-    var bounds by remember { mutableStateOf<MapBounds?>(null) }
+    // Starts with the iOS default region so the List view can load before the map has been laid out.
+    var bounds by remember {
+        mutableStateOf<MapBounds?>(MapBounds(120.894, 14.505, 121.074, 14.685))
+    }
     var places by remember { mutableStateOf(emptyList<PlaceSummary>()) }
     var selected by remember { mutableStateOf<PlaceSummary?>(null) }
     var showingList by remember { mutableStateOf(initiallyShowingList) }

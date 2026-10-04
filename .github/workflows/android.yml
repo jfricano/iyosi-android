@@ -27,4 +27,5 @@ jobs:
           path: |
             app/build/outputs/apk/debug/*.apk
             app/build/reports/**
+            app/build/outputs/roborazzi/**
           if-no-files-found: ignore
