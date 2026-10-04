@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Diamond
 import androidx.compose.material.icons.filled.DoorFront
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.PendingActions
@@ -171,7 +170,7 @@ fun SubmissionScreen(state: AppState, navigator: Navigator, initialPoint: GeoPoi
                 TileMap(
                     camera = camera,
                     items = listOfNotNull(
-                        MapItem("area", pin) { SelectionPin(Icons.Filled.Diamond, Guide.colors.amber, Guide.colors.amberPale) },
+                        MapItem("area", pin) { SelectionPin(GuideDiamond, Guide.colors.amber, Guide.colors.amberPale) },
                         accessPoint?.let { MapItem("entrance", it) { SelectionPin(Icons.Filled.DoorFront, Guide.colors.teal, Guide.colors.tealPale) } },
                     ),
                     description = "Map for selecting the reported area or public entrance pin",
@@ -237,7 +236,7 @@ fun SubmissionScreen(state: AppState, navigator: Navigator, initialPoint: GeoPoi
                     }
                 }
                 if (closeDuplicates.isNotEmpty() && correcting == null) {
-                    GuideNotice("A place is within 50 m. Open that place and suggest a correction instead.", Icons.Filled.Diamond, warning = true)
+                    GuideNotice("A place is within 50 m. Open that place and suggest a correction instead.", GuideDiamond, warning = true)
                 }
             }
             error?.let { GuideNotice(it, Icons.Outlined.Warning, warning = true) }

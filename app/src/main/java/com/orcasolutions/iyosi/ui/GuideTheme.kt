@@ -19,7 +19,6 @@ import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Business
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Diamond
 import androidx.compose.material.icons.filled.Park
 import androidx.compose.material.icons.filled.QuestionMark
 import androidx.compose.material.icons.filled.Verified
@@ -130,6 +129,14 @@ fun GuideTheme(dark: Boolean = isSystemInDarkTheme(), content: @Composable () ->
     }
 }
 
+/** The landing page's amber diamond for unverified community reports (Material's "Diamond" is a gem). */
+val GuideDiamond: ImageVector = ImageVector.Builder("GuideDiamond", 24.dp, 24.dp, 24f, 24f).apply {
+    addPath(
+        androidx.compose.ui.graphics.vector.PathParser().parsePathString("M12,3 L21,12 L12,21 L3,12 Z").toNodes(),
+        fill = androidx.compose.ui.graphics.SolidColor(Color.Black),
+    )
+}.build()
+
 val PlaceKind.icon: ImageVector
     get() = when (this) {
         PlaceKind.PublicDesignated -> Icons.Filled.Verified
@@ -141,7 +148,7 @@ val PlaceKind.icon: ImageVector
 val AdvisoryStatus.icon: ImageVector
     get() = when (this) {
         AdvisoryStatus.VerifiedDesignated -> Icons.Filled.Check
-        AdvisoryStatus.CommunityReported -> Icons.Filled.Diamond
+        AdvisoryStatus.CommunityReported -> GuideDiamond
         AdvisoryStatus.Disputed -> Icons.Filled.Warning
         AdvisoryStatus.Prohibited -> Icons.Filled.Block
         AdvisoryStatus.Closed -> Icons.Filled.Close
