@@ -16,6 +16,10 @@ Status as of October 4, 2026, for pull request #1.
   - The findings were reconciled with the iOS and API reviews. The shared notes are in the project's `reviews/android.md`, `reviews/ios.md`, and `reviews/api.md`.
 - **Not yet exercised:** the app has not run on an emulator or device against a live API. The cloud environment cannot download the Android SDK, so it is verified only by CI. That makes the dev-mode test below the gate before merging.
 
+## Merging
+
+Merge with **Rebase and merge** once the dev-mode test below passes. The branch has 17 linear commits on top of `main`, with no merge commits, so they apply cleanly and keep their author.
+
 ## Works with which API
 
 - The app works against the API's current `main`.
