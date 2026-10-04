@@ -1,6 +1,6 @@
 # Android review status
 
-Status as of October 4, 2026, for pull request #1 (`claude/android-app-58amer`).
+Status as of October 4, 2026, for pull request #1.
 
 ## Where things stand
 
