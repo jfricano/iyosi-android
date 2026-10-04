@@ -20,9 +20,10 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
       - name: Unit tests
         run: ./gradlew --no-daemon testDebugUnitTest
-      - name: Commit design screenshots
+      - name: Publish design screenshots
         # Opt-in: a pushed commit whose message contains [update screenshots]
-        # refreshes the fixture renders in docs/design for review.
+        # publishes the fixture renders to the design-screenshots branch for
+        # review, leaving the pushed branch itself untouched.
         if: github.event_name == 'push' && contains(github.event.head_commit.message, '[update screenshots]')
         run: |
           mkdir -p docs/design
@@ -30,7 +31,8 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add docs/design
-          git diff --cached --quiet || { git commit -m "Update design screenshots" && git push; }
+          git commit -m "Design screenshots for ${GITHUB_SHA::7}" --allow-empty
+          git push --force origin HEAD:refs/heads/design-screenshots
       - name: Build debug and release
         run: ./gradlew --no-daemon assembleDebug assembleRelease lintDebug
       - uses: actions/upload-artifact@v4
