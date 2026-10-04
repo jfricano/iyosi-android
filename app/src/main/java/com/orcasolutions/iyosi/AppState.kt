@@ -84,9 +84,11 @@ class AppState(
         try {
             account = api.me()
             accountError = null
-        } catch (error: ApiException) {
+        } catch (error: kotlinx.coroutines.CancellationException) {
+            throw error
+        } catch (error: Exception) {
             accountError = error.message
-            if (error.code == "unauthenticated" || error.status == 401) signOut()
+            if (error is ApiException && (error.code == "unauthenticated" || error.status == 401)) signOut()
         }
     }
 
