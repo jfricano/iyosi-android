@@ -18,7 +18,7 @@ Status as of October 4, 2026, for pull request #1.
 
 ## Merging
 
-Merge with **Rebase and merge** once the dev-mode test below passes. The branch has 17 linear commits on top of `main`, with no merge commits, so they apply cleanly and keep their author.
+Merge with **Rebase and merge** once the dev-mode test below passes. The branch is a linear series of commits on top of `main`, with no merge commits, so they apply cleanly and keep their author.
 
 ## Works with which API
 
