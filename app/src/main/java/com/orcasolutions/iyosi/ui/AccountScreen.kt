@@ -191,7 +191,7 @@ fun AccountScreen(state: AppState, navigator: Navigator) {
         AlertDialog(
             onDismissRequest = { confirmingDeletion = false },
             title = { Text("Request account deletion?") },
-            text = { Text("An administrator will review your request.") },
+            text = { Text("An administrator will review your request. If it is approved, your reviews are removed and the text you wrote in submissions, confirmations, and reports is blanked. Places that were already published stay.") },
             confirmButton = {
                 TextButton(onClick = {
                     confirmingDeletion = false
