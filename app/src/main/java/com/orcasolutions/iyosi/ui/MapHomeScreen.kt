@@ -143,6 +143,12 @@ fun MapHomeScreen(state: AppState, navigator: Navigator, initiallyShowingList: B
     var moreAvailable by remember { mutableStateOf(false) }
     var reload by remember { mutableIntStateOf(0) }
 
+    // Sheets are separate windows; close them when a screen is pushed over the map (e.g. a deep link).
+    val covered = navigator.stack.isNotEmpty()
+    LaunchedEffect(covered) {
+        if (covered) { selected = null; showingFilters = false; showingLegend = false }
+    }
+
     val includeProhibited = AdvisoryStatus.Prohibited in statuses
     val visiblePlaces = places.filter { it.kind in kinds && it.advisoryStatus in statuses }
     val zoomLimited = bounds?.let { it.latSpan > 0.5 || it.lonSpan > 0.5 } ?: false
@@ -189,9 +195,13 @@ fun MapHomeScreen(state: AppState, navigator: Navigator, initiallyShowingList: B
         }
     }
 
+    var locationRequest by remember { mutableStateOf<android.os.CancellationSignal?>(null) }
+    androidx.compose.runtime.DisposableEffect(Unit) { onDispose { locationRequest?.cancel() } }
     fun locate() {
         searchError = null
-        ForegroundLocation.request(context) { point ->
+        locationRequest?.cancel()
+        locationRequest = ForegroundLocation.request(context) { point ->
+            locationRequest = null
             if (point == null) searchError = "Location is unavailable. Search and map browsing still work."
             else {
                 showingList = false
@@ -335,7 +345,7 @@ private fun Header(
         Column(Modifier.padding(end = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             TextField(
                 value = search,
-                onValueChange = onSearch,
+                onValueChange = { onSearch(it.take(100)) },
                 placeholder = { Text("Search an area or landmark", style = Guide.body(15.sp)) },
                 leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null, tint = colors.teal) },
                 trailingIcon = {
@@ -530,7 +540,7 @@ private fun ClusterMarker(count: Int, onClick: () -> Unit) {
     Box(
         Modifier.size(48.dp).background(colors.ink, CircleShape).border(3.dp, colors.surface, CircleShape)
             .clickable(onClickLabel = "Zoom in", role = Role.Button, onClick = onClick)
-            .semantics(mergeDescendants = true) { contentDescription = "$count places, double tap to zoom" },
+            .semantics(mergeDescendants = true) { contentDescription = "$count places" },
         contentAlignment = Alignment.Center,
     ) { Text("$count", style = Guide.heading(18.sp), color = colors.paper) }
 }

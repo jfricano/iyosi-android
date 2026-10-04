@@ -45,7 +45,7 @@ class AppState(
         private set
 
     val isSignedIn get() = token != null
-    val api get() = ApiClient(baseUrl, token, transport)
+    val api get() = ApiClient(baseUrl, token, transport) { signOut() }
 
     fun acceptAdultAccess() {
         adultAccessAccepted = true
@@ -69,11 +69,14 @@ class AppState(
         return true
     }
 
+    /** Signs in; the account loads when [token] changes. A token is dropped if the server changed meanwhile. */
     suspend fun authenticate(email: String, password: String, registering: Boolean) {
-        val credentials = if (registering) api.register(email, password) else api.login(email, password)
+        val server = baseUrl
+        val client = ApiClient(server, null, transport)
+        val credentials = if (registering) client.register(email, password) else client.login(email, password)
+        if (server != baseUrl) throw ApiException(0, "The API server changed while signing in. Try again.", "server_changed")
         token = credentials.accessToken
         tokens.save(credentials.accessToken)
-        refreshAccount()
     }
 
     suspend fun refreshAccount() {
@@ -126,4 +129,5 @@ class AppState(
 /** Keeps one [AppState] across configuration changes. */
 class AppViewModel(application: Application) : AndroidViewModel(application) {
     val state = AppState.create(application)
+    val navigator = com.orcasolutions.iyosi.ui.Navigator()
 }

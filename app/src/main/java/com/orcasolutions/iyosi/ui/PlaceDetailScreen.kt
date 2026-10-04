@@ -56,13 +56,14 @@ import kotlinx.coroutines.launch
 @Composable
 fun PlaceDetailScreen(placeId: String, state: AppState, navigator: Navigator) {
     val scope = rememberCoroutineScope()
-    var place by remember { mutableStateOf<Place?>(null) }
-    var reviews by remember { mutableStateOf(emptyList<PublicReview>()) }
-    var confirmations by remember { mutableStateOf(emptyList<PublicConfirmation>()) }
-    var reviewCursor by remember { mutableStateOf<String?>(null) }
-    var confirmationCursor by remember { mutableStateOf<String?>(null) }
-    var loading by remember { mutableStateOf(true) }
-    var error by remember { mutableStateOf<String?>(null) }
+    // Keyed by server so a server change never leaves another server's record on screen.
+    var place by remember(state.baseUrl) { mutableStateOf<Place?>(null) }
+    var reviews by remember(state.baseUrl) { mutableStateOf(emptyList<PublicReview>()) }
+    var confirmations by remember(state.baseUrl) { mutableStateOf(emptyList<PublicConfirmation>()) }
+    var reviewCursor by remember(state.baseUrl) { mutableStateOf<String?>(null) }
+    var confirmationCursor by remember(state.baseUrl) { mutableStateOf<String?>(null) }
+    var loading by remember(state.baseUrl) { mutableStateOf(true) }
+    var error by remember(state.baseUrl) { mutableStateOf<String?>(null) }
     // Reload whenever this page returns to the top, as iOS does when a contribution sheet closes.
     val isTop = navigator.stack.lastOrNull() == Route.Detail(placeId)
 
@@ -72,7 +73,10 @@ fun PlaceDetailScreen(placeId: String, state: AppState, navigator: Navigator) {
         try {
             val result = state.api.place(placeId)
             place = result
-            if (result.advisoryStatus != AdvisoryStatus.Closed && result.mergedInto == null) {
+            if (result.advisoryStatus == AdvisoryStatus.Closed || result.mergedInto != null) {
+                reviews = emptyList(); reviewCursor = null
+                confirmations = emptyList(); confirmationCursor = null
+            } else {
                 runCatching { state.api.reviews(placeId) }.getOrNull()?.let { reviews = it.items; reviewCursor = it.nextCursor }
                 runCatching { state.api.confirmations(placeId) }.getOrNull()?.let {
                     confirmations = it.items; confirmationCursor = it.nextCursor
@@ -173,11 +177,16 @@ private fun PlaceContent(
             place.verification?.let { GuideFact("Public source", it.publicSource, Icons.Outlined.Description) }
             GuideMuted(if (place.freshness == "fresh") "Recent community confirmation" else "No recent community confirmation")
             if (place.directionsAllowed) {
-                GuideButton(onClick = { openDirections(context, place.accessPoint ?: place.location, place.name) }, modifier = Modifier.fillMaxWidth()) {
+                var noMapsApp by remember { mutableStateOf(false) }
+                GuideButton(
+                    onClick = { noMapsApp = !openDirections(context, place.accessPoint ?: place.location, place.name) },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
                     Icon(Icons.Filled.Directions, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.size(8.dp))
                     Text("Directions to public access point")
                 }
+                if (noMapsApp) GuideMuted("No maps app or browser is available to open directions.", 13)
             }
         }
 
@@ -241,13 +250,19 @@ private fun PlaceContent(
     }
 }
 
-/** Opens walking directions in the device's maps app via a standard geo/navigation intent. */
-private fun openDirections(context: android.content.Context, point: GeoPoint, name: String) {
+/**
+ * Opens walking directions like iOS does. The universal Maps URL opens the maps app or a browser;
+ * a plain geo: pin is the fallback. Returns false when nothing on the device can open either.
+ */
+private fun openDirections(context: android.content.Context, point: GeoPoint, name: String): Boolean {
     val directions = Uri.parse("https://www.google.com/maps/dir/?api=1&travelmode=walking&destination=${point.lat},${point.lon}")
     val geo = Uri.parse("geo:${point.lat},${point.lon}?q=${point.lat},${point.lon}(${Uri.encode(name)})")
-    try {
-        context.startActivity(Intent(Intent.ACTION_VIEW, geo))
-    } catch (_: ActivityNotFoundException) {
-        context.startActivity(Intent(Intent.ACTION_VIEW, directions))
+    for (uri in listOf(directions, geo)) {
+        try {
+            context.startActivity(Intent(Intent.ACTION_VIEW, uri))
+            return true
+        } catch (_: ActivityNotFoundException) {
+        }
     }
+    return false
 }

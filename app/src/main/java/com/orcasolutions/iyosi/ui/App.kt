@@ -7,7 +7,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import com.orcasolutions.iyosi.AppState
@@ -33,8 +32,7 @@ class Navigator {
 }
 
 @Composable
-fun IYosiApp(state: AppState, deepLinkPlace: String?, onDeepLinkHandled: () -> Unit) {
-    val navigator = remember { Navigator() }
+fun IYosiApp(state: AppState, navigator: Navigator, deepLinkPlace: String?, onDeepLinkHandled: () -> Unit) {
     LaunchedEffect(state.token) { state.refreshAccount() }
 
     if (!state.adultAccessAccepted) {

@@ -54,7 +54,7 @@ fun AuthForm(state: AppState, navigator: Navigator, padding: PaddingValues) {
     var busy by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
     val colors = Guide.colors
-    val canSubmit = !busy && email.isNotBlank() && password.isNotEmpty() &&
+    val canSubmit = !busy && email.trim().length >= 5 && password.isNotEmpty() &&
         (!registering || (adultAttested && password.length in 12..128))
 
     GuideColumn(padding) {
@@ -125,7 +125,6 @@ fun AccountScreen(state: AppState, navigator: Navigator) {
     var confirmingDeletion by remember { mutableStateOf(false) }
 
     LaunchedEffect(state.token) {
-        state.refreshAccount()
         try {
             submissions = state.api.submissions()
         } catch (failure: CancellationException) {
@@ -200,6 +199,8 @@ fun AccountScreen(state: AppState, navigator: Navigator) {
                         try {
                             state.api.deletionRequest()
                             deletionRequested = true
+                        } catch (failure: CancellationException) {
+                            throw failure
                         } catch (failure: Exception) {
                             error = failure.message
                         }

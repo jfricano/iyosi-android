@@ -32,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.foundation.text.KeyboardOptions
@@ -55,7 +56,7 @@ fun GuidePage(
         contentColor = colors.ink,
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text(title, style = Guide.heading(17.sp), maxLines = 1) },
+                title = { Text(title, style = Guide.heading(17.sp), maxLines = 1, overflow = TextOverflow.Ellipsis) },
                 navigationIcon = {
                     if (onClose != null) {
                         IconButton(onClick = onClose) {
@@ -139,7 +140,7 @@ fun GuideTextField(
             isError = limit != null && value.length > limit,
             colors = OutlinedTextFieldDefaults.colors(
                 focusedContainerColor = colors.surface, unfocusedContainerColor = colors.surface,
-                focusedBorderColor = colors.tealInk, unfocusedBorderColor = colors.line,
+                focusedBorderColor = colors.tealInk, unfocusedBorderColor = colors.muted,
                 focusedLabelColor = colors.tealInk, unfocusedLabelColor = colors.muted, cursorColor = colors.tealInk,
             ),
             modifier = modifier.fillMaxWidth(),

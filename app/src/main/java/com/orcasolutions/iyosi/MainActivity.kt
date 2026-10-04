@@ -22,6 +22,7 @@ class MainActivity : ComponentActivity() {
             GuideTheme {
                 IYosiApp(
                     state = model.state,
+                    navigator = model.navigator,
                     deepLinkPlace = deepLinkPlace.value,
                     onDeepLinkHandled = { deepLinkPlace.value = null },
                 )
@@ -38,6 +39,6 @@ class MainActivity : ComponentActivity() {
     private fun placeId(intent: Intent?): String? {
         val uri = intent?.data ?: return null
         if (uri.scheme != "iyosi" || uri.host != "places") return null
-        return uri.pathSegments.singleOrNull()?.takeIf { it.isNotBlank() }
+        return uri.pathSegments.singleOrNull()?.takeIf { it.isNotBlank() && it != "." && it != ".." }
     }
 }

@@ -23,6 +23,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
@@ -166,10 +167,10 @@ private object TileCache {
             if (memory.get(key) != null || key in inFlight || (failedUntil[key] ?: 0) > System.currentTimeMillis()) return
             inFlight += key
         }
-        scope.launch {
+        val job = scope.launch {
+            // Cancellation (the map left the screen) leaves the tile retryable rather than failed.
             val bitmap = withContext(Dispatchers.IO) { load(context, key, z, x, y) }
             synchronized(this@TileCache) {
-                inFlight -= key
                 if (bitmap == null) failedUntil[key] = System.currentTimeMillis() + 30_000
             }
             if (bitmap != null) {
@@ -177,6 +178,8 @@ private object TileCache {
                 onLoaded()
             }
         }
+        // Also runs when the job is cancelled before it starts.
+        job.invokeOnCompletion { synchronized(this@TileCache) { inFlight -= key } }
     }
 
     private suspend fun load(context: Context, key: String, z: Int, x: Int, y: Int): ImageBitmap? = try {
@@ -187,7 +190,9 @@ private object TileCache {
         }
         val file = File(directory, "$key.png")
         val cached = if (file.isFile && System.currentTimeMillis() - file.lastModified() < MAX_AGE_MS) file.readBytes() else null
-        val bytes = cached ?: downloads.withPermit {
+        cached?.let { BitmapFactory.decodeByteArray(it, 0, it.size) }?.let { return it.asImageBitmap() }
+        if (cached != null) file.delete() // Corrupt or truncated; download again.
+        val bytes = downloads.withPermit {
             val url = BuildConfig.TILE_URL.replace("{z}", "$z").replace("{x}", "$x").replace("{y}", "$y")
             val connection = URL(url).openConnection() as HttpURLConnection
             try {
@@ -201,8 +206,13 @@ private object TileCache {
         }
         if (bytes == null) null
         else BitmapFactory.decodeByteArray(bytes, 0, bytes.size)?.also {
-            if (cached == null) file.writeBytes(bytes)
+            // Write then rename so an interrupted write never leaves a truncated cache entry.
+            val partial = File(directory, "$key.part")
+            partial.writeBytes(bytes)
+            partial.renameTo(file)
         }?.asImageBitmap()
+    } catch (error: kotlinx.coroutines.CancellationException) {
+        throw error
     } catch (_: Exception) {
         null
     }
@@ -238,6 +248,8 @@ fun TileMap(
 
     Box(
         modifier
+            // Tiles and markers extend past the viewport; never paint over neighbouring UI.
+            .clipToBounds()
             .background(if (colors == DarkGuide) Color(0xFF1C2B33) else Color(0xFFE9EEE8))
             .onSizeChanged { camera.size = it }
             .pointerInput(camera) {

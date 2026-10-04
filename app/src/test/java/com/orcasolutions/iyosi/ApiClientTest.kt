@@ -34,6 +34,27 @@ class ApiClientTest {
         assertFalse(ApiClient.isAllowedBaseUrl("http://api.example.com"))
         assertFalse(ApiClient.isAllowedBaseUrl("ftp://api.example.com"))
         assertFalse(ApiClient.isAllowedBaseUrl("not a url"))
+        // Release builds block cleartext, so local HTTP is refused there.
+        assertFalse(ApiClient.isAllowedBaseUrl("http://10.0.2.2:8000", allowLocalHttp = false))
+        assertTrue(ApiClient.isAllowedBaseUrl("https://api.example.com", allowLocalHttp = false))
+    }
+
+    @Test fun rejectedTokenSignsOutAndFieldErrorsAreShown() = runBlocking {
+        var signedOut = false
+        val transport = Recorder(422, """{"code":"invalid_input","message":"Check the submitted fields",
+            "field_errors":[{"field":"body.email","message":"String should have at least 5 characters"}]}""")
+        try {
+            ApiClient("https://api.example.com", null, transport).register("a@b", "password-long")
+            fail("Expected an error")
+        } catch (error: ApiException) {
+            assertEquals("Check the submitted fields (email: String should have at least 5 characters)", error.message)
+        }
+        val expired = Recorder(401, """{"code":"unauthenticated","message":"Sign in to continue"}""")
+        try {
+            ApiClient("https://api.example.com", "old", expired) { signedOut = true }.me()
+        } catch (_: ApiException) {
+        }
+        assertTrue(signedOut)
     }
 
     @Test fun encodesQueryAndPathSegments() {

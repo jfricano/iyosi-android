@@ -39,6 +39,7 @@ import com.orcasolutions.iyosi.data.ConfirmationRequest
 import com.orcasolutions.iyosi.data.DateText
 import com.orcasolutions.iyosi.data.ReportRequest
 import com.orcasolutions.iyosi.data.ReviewRequest
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.ZoneId
@@ -124,6 +125,8 @@ fun ConfirmationForm(placeId: String, state: AppState, onDone: () -> Unit) {
         try {
             val payload = ConfirmationRequest(observation, observedAt.toString(), notes.ifEmpty { null })
             receipt = state.api.confirm(placeId, payload, key.forPayload(ApiJson.encodeToString(ConfirmationRequest.serializer(), payload))).id
+        } catch (failure: CancellationException) {
+            throw failure
         } catch (failure: Exception) {
             error = failure.message
         }
@@ -155,7 +158,9 @@ fun ConfirmationForm(placeId: String, state: AppState, onDone: () -> Unit) {
     if (choosingDate) {
         val zone = ZoneId.systemDefault()
         val today = LocalDate.now(zone)
-        val earliest = today.minusDays(30)
+        // The server accepts observations from the last 30 days to the instant; a noon time on the
+        // 30th day back can fall outside it, so the oldest selectable day is 29 days ago.
+        val earliest = today.minusDays(29)
         // The Material date picker works in UTC milliseconds at midnight.
         val pickerState = rememberDatePickerState(
             initialSelectedDateMillis = observedAt.atZone(zone).toLocalDate().atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli(),
@@ -198,6 +203,8 @@ fun ReviewForm(placeId: String, state: AppState, onDone: () -> Unit) {
         try {
             state.api.review(placeId, ReviewRequest(stars, body.ifEmpty { null }))
             onDone()
+        } catch (failure: CancellationException) {
+            throw failure
         } catch (failure: Exception) {
             error = failure.message
         }
@@ -240,6 +247,8 @@ fun ReportForm(targetType: String, targetId: String, state: AppState, onDone: ()
         try {
             val payload = ReportRequest(targetType, targetId, reason, detail.ifEmpty { null })
             receipt = state.api.report(payload, key.forPayload(ApiJson.encodeToString(ReportRequest.serializer(), payload))).id
+        } catch (failure: CancellationException) {
+            throw failure
         } catch (failure: Exception) {
             error = failure.message
         }

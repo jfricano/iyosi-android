@@ -161,7 +161,10 @@ data class Credentials(val email: String, val password: String)
 data class Registration(val email: String, val password: String, val adultAttested: Boolean)
 
 @Serializable
-data class ApiErrorBody(val code: String, val message: String)
+data class FieldError(val field: String = "", val message: String)
+
+@Serializable
+data class ApiErrorBody(val code: String, val message: String, val fieldErrors: List<FieldError> = emptyList())
 
 object DateText {
     private val formatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM)

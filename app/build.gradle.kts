@@ -17,7 +17,6 @@ android {
         targetSdk = 35
         versionCode = 2
         versionName = "0.2.0"
-        buildConfigField("String", "API_BASE_URL", "\"${property("iyosiApiUrl", "http://10.0.2.2:8000")}\"")
         buildConfigField("String", "TILE_URL", "\"${property("iyosiTileUrl", "https://tile.openstreetmap.org/{z}/{x}/{y}.png")}\"")
         buildConfigField("String", "TILE_ATTRIBUTION", "\"${property("iyosiTileAttribution", "© OpenStreetMap contributors")}\"")
     }
@@ -26,9 +25,16 @@ android {
         compose = true
     }
     buildTypes {
-        debug { manifestPlaceholders["cleartextAllowed"] = "true" }
+        debug {
+            manifestPlaceholders["cleartextAllowed"] = "true"
+            buildConfigField("String", "API_BASE_URL", "\"${property("iyosiApiUrl", "http://10.0.2.2:8000")}\"")
+        }
         release {
             manifestPlaceholders["cleartextAllowed"] = "false"
+            // Release builds block cleartext, so only an HTTPS default is compiled in. Without one,
+            // the person enters a server under Account → API server settings.
+            val releaseUrl = property("iyosiApiUrl", "").takeIf { it.startsWith("https://") } ?: ""
+            buildConfigField("String", "API_BASE_URL", "\"$releaseUrl\"")
             isMinifyEnabled = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }

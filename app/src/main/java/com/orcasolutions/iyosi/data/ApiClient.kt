@@ -1,5 +1,6 @@
 package com.orcasolutions.iyosi.data
 
+import com.orcasolutions.iyosi.BuildConfig
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -55,6 +56,8 @@ class ApiClient(
     private val baseUrl: String,
     private val token: String? = null,
     private val transport: Transport = HttpTransport,
+    /** Called when the server rejects [token], so the app can sign out instead of failing every form. */
+    private val onUnauthorized: () -> Unit = {},
 ) {
     private suspend inline fun <reified T> request(
         path: String,
@@ -88,7 +91,12 @@ class ApiClient(
         }
         if (status !in 200..299) {
             val error = runCatching { ApiJson.decodeFromString<ApiErrorBody>(text) }.getOrNull()
-            throw ApiException(status, error?.message ?: "Server returned $status.", error?.code ?: "http_error")
+            if (status == 401 && token != null) onUnauthorized()
+            val detail = error?.fieldErrors?.firstOrNull()?.let { field ->
+                val name = field.field.substringAfterLast('.').replace('_', ' ')
+                if (name.isBlank()) " ${field.message}" else " ($name: ${field.message})"
+            } ?: ""
+            throw ApiException(status, (error?.message ?: "Server returned $status.") + detail, error?.code ?: "http_error")
         }
         return ApiJson.decodeFromString(deserializer, text.ifEmpty { "{}" })
     }
@@ -146,12 +154,16 @@ class ApiClient(
         const val INVALID_SERVER = "Enter a valid HTTPS API URL, or a local HTTP URL for development."
         private val localHosts = setOf("localhost", "127.0.0.1", "10.0.2.2")
 
-        fun isAllowedBaseUrl(value: String): Boolean {
+        /**
+         * HTTPS anywhere; plain HTTP only to local development hosts and only in debug builds,
+         * because release builds block cleartext traffic.
+         */
+        fun isAllowedBaseUrl(value: String, allowLocalHttp: Boolean = BuildConfig.DEBUG): Boolean {
             val uri = runCatching { java.net.URI(value.trim()) }.getOrNull() ?: return false
             val host = uri.host?.lowercase() ?: return false
             return when (uri.scheme?.lowercase()) {
                 "https" -> true
-                "http" -> host in localHosts || host.endsWith(".local")
+                "http" -> allowLocalHttp && (host in localHosts || host.endsWith(".local"))
                 else -> false
             } && uri.query == null && uri.fragment == null
         }
