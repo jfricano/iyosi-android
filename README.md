@@ -20,7 +20,7 @@ Release builds block cleartext HTTP. The base URL can also be changed in the app
 
 The map defaults to OpenStreetMap standard raster tiles. Set `-PiyosiTileUrl=https://your-provider.example/{z}/{x}/{y}.png` and `-PiyosiTileAttribution='Your provider attribution'` to use a pilot-approved tile provider. The tile client identifies itself, shows attribution, requests only visible tiles, and keeps tiles in its cache for seven days. OpenStreetMap's [tile usage policy](https://operations.osmfoundation.org/policies/tiles/) applies to the default. Choose a provider and publish operator contact details before a larger rollout.
 
-Address search needs the API's `GEOCODER_URL`. Without it, the server returns `503`; the map and place list continue working. The app does not need location permission for browsing or search. A user grants foreground location only by tapping **Near me**.
+Address search needs server-side `GEOAPIFY_API_KEY` or a compatible `GEOCODER_URL`. Geoapify takes precedence when its key is configured. Without either provider, the server returns `503`; the map and place list continue working. The app does not need location permission for browsing or search. A user grants foreground location only by tapping **Near me**.
 
 ## Pilot behavior
 
