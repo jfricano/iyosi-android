@@ -40,3 +40,7 @@ Address search needs the API's `GEOCODER_URL`. Without it, the server returns `5
 ## License
 
 Copyright © 2026 Orca Solutions. All rights reserved. See [LICENSE.md](LICENSE.md). Public visibility does not make this app open source.
+
+## Delivery workflow
+
+See [the delivery workflow](docs/WORKFLOW.md) for author verification, focused review of high-risk changes and scoped release authority. Existing project behavior and setup commands above remain authoritative.
