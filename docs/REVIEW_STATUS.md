@@ -1,6 +1,8 @@
 # Android review status
 
-Status as of October 4, 2026, for pull request #1.
+Original review status as of October 4, 2026, for pull request #1.
+
+**Repository status checked October 11, 2026:** PR #1 is merged into `main` at `dd5ec37890c0fe091052d33cbf9c4057db966b77`. The CI result below is the recorded pre-merge result, not a fresh verification of the current checkout. The emulator/device dev-mode journeys remain unverified in this record; merging alone does not satisfy them.
 
 ## Where things stand
 
@@ -14,11 +16,11 @@ Status as of October 4, 2026, for pull request #1.
 - An independent review ran before merge, with three reviewers covering the API contract, the Android platform, and the Compose UI.
   - It found 2 blockers and 7 should-fix issues, and all of them are fixed.
   - The findings were reconciled with the iOS and API reviews. The shared notes are in the project's `reviews/android.md`, `reviews/ios.md`, and `reviews/api.md`.
-- **Not yet exercised:** the app has not run on an emulator or device against a live API. The cloud environment cannot download the Android SDK, so it is verified only by CI. That makes the dev-mode test below the gate before merging.
+- **Not yet exercised:** the app has not run on an emulator or device against a live API. The cloud environment cannot download the Android SDK, so it is verified only by CI. The dev-mode test below remains necessary before pilot acceptance; the PR has already merged.
 
 ## Merging
 
-Merge with **Rebase and merge** once the dev-mode test below passes. The branch is a linear series of commits on top of `main`, with no merge commits, so they apply cleanly and keep their author.
+The original recommendation was **Rebase and merge** after the dev-mode test. PR #1 has since merged; no additional merge is needed. Keep the dev-mode test as outstanding validation unless its actual result is recorded.
 
 ## Works with which API
 
