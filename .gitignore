@@ -2,3 +2,6 @@
 /build/
 /app/build/
 /local.properties
+
+# Local Claude Code settings and state.
+/.claude/
