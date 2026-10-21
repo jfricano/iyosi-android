@@ -39,4 +39,4 @@ Address search needs the API's `GEOCODER_URL`. Without it, the server returns `5
 
 ## License
 
-Copyright © 2026 Orca Solutions. All rights reserved. See [LICENSE.md](LICENSE.md). Public visibility does not make this app open source.
+Released under the [MIT License](LICENSE). Copyright © 2026 Jason Fricano.
